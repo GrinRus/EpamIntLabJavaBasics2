@@ -1,6 +1,8 @@
 package com.epam.ryabov.javabasics.service.impl;
 
 import com.epam.ryabov.javabasics.service.Calculator;
+import com.epam.ryabov.javabasics.utility.Bracket;
+import com.epam.ryabov.javabasics.utility.Operations;
 
 import java.util.Stack;
 import java.util.regex.Pattern;
@@ -13,44 +15,55 @@ public class CalculatorImpl implements Calculator {
         if (Pattern.matches(".*[a-zA-Z]+.*", string)) {
             throw new RuntimeException("Ошибка парсинга");
         }
-        String res = string.replaceAll(",", ".");
+        String res = string.replace(",", ".");
         return res.replaceAll("\\s+", " ").toCharArray();
     }
 
-    @Override
-    public Double operation(char o, Double b, Double a) {
-        switch (o) {
-            case '+':
-                return a + b;
-            case '-':
-                return a - b;
-            case '*':
-                return a * b;
-            case '/':
-                if (b == 0) {
-                    throw new RuntimeException("На ноль делить нельзя");
-                }
-                return a / b;
-
+    private void appendSpace(char[] chars, StringBuilder stringBuilder, int i) {
+        if (chars[i] == ' ') {
+            stringBuilder.append(' ');
         }
-        return (double) 0;
     }
 
-    @Override
-    public int priorityLvl(char a) {
-        switch (a) {
-            case '(':
-                return 0;
-            case ')':
-                return 1;
-            case '+':
-            case '-':
-                return 2;
-            case '*':
-            case '/':
-                return 3;
+    private int resRes(char[] chars, StringBuilder stringBuilder, int i) {
+        String regex = "[0-9]|[.]|[ ]";
+        while (Pattern.matches(regex, String.valueOf(chars[i]))) {
+            if (chars[i] == ' ') {
+                stringBuilder.append(' ');
+                break;
+            } else {
+                stringBuilder.append(chars[i]);
+                i++;
+            }
+        }
+        return i;
+    }
+
+    private boolean enumLoop(char aChar) {
+        for (Operations operations : Operations.values()) {
+            if (operations.getChar() == aChar) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int enumLoopPrivateLvl(char aChar) {
+        for (Operations operations : Operations.values()) {
+            if (operations.getChar() == aChar) {
+                return operations.priorityLvl(aChar);
+            }
         }
         return 0;
+    }
+
+    private Double enumLoopOperation(char aChar, Double b, Double a) {
+        for (Operations operations : Operations.values()) {
+            if (operations.getChar() == aChar) {
+                return operations.operate(b, a);
+            }
+        }
+        return 0.0;
     }
 
     @Override
@@ -59,52 +72,33 @@ public class CalculatorImpl implements Calculator {
         Stack<Character> stack = new Stack<>();
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < chars.length; i++) {
-            if (chars[i] == ' ') {
-                stringBuilder.append(' ');
+            appendSpace(chars, stringBuilder, i);
+            if (stack.empty()) {
+                if (enumLoop(chars[i]) || chars[i] == Bracket.OPENBRACKET.getChar() || chars[i] == Bracket.CLOSEBRACKET.getChar()) {
+                    stack.push(chars[i]);
+                } else {
+                    i = resRes(chars, stringBuilder, i);
+                }
             } else {
-                if (stack.empty()) {
-                    if (chars[i] == '+' || chars[i] == '-' || chars[i] == '/' || chars[i] == '*' || chars[i] == '(' || chars[i] == ')') {
+                if (chars[i] == Bracket.CLOSEBRACKET.getChar()) {
+                    while (stack.peek() != Bracket.OPENBRACKET.getChar()) {
+                        stringBuilder.append(stack.pop());
+                        if (stack.peek() == Bracket.OPENBRACKET.getChar()) {
+                            stack.pop();
+                            break;
+                        }
+                    }
+                } else if (chars[i] == Bracket.OPENBRACKET.getChar()) {
+                    stack.push(chars[i]);
+                } else if (enumLoop(chars[i])) {
+                    if (enumLoopPrivateLvl(chars[i]) <= enumLoopPrivateLvl(stack.peek())) {
+                        stringBuilder.append(stack.pop());
                         stack.push(chars[i]);
                     } else {
-                        while (Pattern.matches("[0-9]|[.]|[ ]", String.valueOf(chars[i]))) {
-                            if (chars[i] == ' ') {
-                                stringBuilder.append(' ');
-                                break;
-                            } else {
-                                stringBuilder.append(chars[i]);
-                                i++;
-                            }
-                        }
+                        stack.push(chars[i]);
                     }
                 } else {
-                    if (chars[i] == ')') {
-                        while (stack.peek() != '(') {
-                            stringBuilder.append(stack.pop());
-                            if (stack.peek() == '(') {
-                                stack.pop();
-                                break;
-                            }
-                        }
-                    } else if (chars[i] == '(') {
-                        stack.push(chars[i]);
-                    } else if (chars[i] == '+' || chars[i] == '-' || chars[i] == '/' || chars[i] == '*') {
-                        if (priorityLvl(chars[i]) <= priorityLvl(stack.peek())) {
-                            stringBuilder.append(stack.pop());
-                            stack.push(chars[i]);
-                        } else {
-                            stack.push(chars[i]);
-                        }
-                    } else if (Pattern.matches("[0-9]|[.]|[ ]", String.valueOf(chars[i]))) {
-                        while (Pattern.matches("[0-9]|[.]|[ ]", String.valueOf(chars[i]))) {
-                            if (chars[i] == ' ') {
-                                stringBuilder.append(' ');
-                                break;
-                            } else {
-                                stringBuilder.append(chars[i]);
-                                i++;
-                            }
-                        }
-                    }
+                    i = resRes(chars, stringBuilder, i);
                 }
             }
         }
@@ -120,9 +114,8 @@ public class CalculatorImpl implements Calculator {
         Stack<Double> stack = new Stack<>();
         for (int i = 0; i < chars.length; i++) {
             if (chars[i] == ' ') {
-                continue;
-            } else if (chars[i] == '+' || chars[i] == '-' || chars[i] == '/' || chars[i] == '*') {
-                stack.push(operation(chars[i], stack.pop(), stack.pop()));
+            } else if (enumLoop(chars[i])) {
+                stack.push(enumLoopOperation(chars[i], stack.pop(), stack.pop()));
             } else {
                 StringBuilder stringBuilder = new StringBuilder();
                 while (Pattern.matches("[0-9]|[.]", String.valueOf(chars[i]))) {
