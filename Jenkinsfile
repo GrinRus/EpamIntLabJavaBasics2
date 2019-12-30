@@ -21,7 +21,7 @@ pipeline {
                 bat 'mvn clean package'
                 bat 'mvn versions:set -DnewVersion=${project.version}.$BUILD_NUMBER'
                 echo "$BUILD_NUMBER"
-                echo ${myVariable}
+                echo "${myVariable}"
             }
         }
 
