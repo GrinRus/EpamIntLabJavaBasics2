@@ -22,7 +22,7 @@ pipeline {
 
         stage ('run'){
         steps{
-        bat 'java -jar EpamIntLabJavaBasics2-1.0-SNAPSHOT.jar'
+        bat 'java -jar target/EpamIntLabJavaBasics2-1.0-SNAPSHOT.jar'
         }
         }
     }
