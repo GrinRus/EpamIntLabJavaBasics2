@@ -19,5 +19,11 @@ pipeline {
                 bat 'mvn clean package'
             }
         }
+
+        stage ('run'){
+        steps{
+        bat 'java -jar EpamIntLabJavaBasics2-1.0-SNAPSHOT.jar'
+        }
+        }
     }
 }
