@@ -17,12 +17,19 @@ pipeline {
         stage ('Build') {
             steps {
                 bat 'mvn clean package'
+                bat 'versions:set -DnewVersion=${project.version}.${BUILD_NUMBER}
             }
         }
 
         stage ('run'){
         steps{
         bat 'java -jar target/EpamIntLabJavaBasics2-1.0-SNAPSHOT.jar'
+        }
+        }
+
+        stage ('complete'){
+        steps{
+        echo "Complete"
         }
         }
     }
