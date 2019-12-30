@@ -17,9 +17,8 @@ pipeline {
         stage ('Build') {
             steps {
                 bat 'mvn clean package'
-                bat 'mvn versions:set -DnewVersion=${project.version}.$BUILD_NUMBER'
-                echo "$BUILD_NUMBER"
-                echo "${myVariable}"
+                bat 'mvn versions:set -DnewVersion=${project.version}.${BUILD_NUMBER}'
+                echo "${BUILD_NUMBER}"
             }
         }
 
