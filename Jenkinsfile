@@ -1,5 +1,3 @@
-def myVariable = ${BUILD_NUMBER}
-
 pipeline {
     agent any
     tools {
