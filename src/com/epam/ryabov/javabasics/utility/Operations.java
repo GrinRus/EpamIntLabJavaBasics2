@@ -1,5 +1,7 @@
 package com.epam.ryabov.javabasics.utility;
 
+import java.util.function.BinaryOperator;
+
 public enum Operations {
 
     PLUS('+') {
