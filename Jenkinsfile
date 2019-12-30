@@ -2,8 +2,8 @@ pipeline {
     agent any
     stages {
         stage('Build') {
-                steps {
-                sh 'mvn clean package'
+            steps {
+               echo 'This is a minimal pipeline.'
             }
         }
     }
