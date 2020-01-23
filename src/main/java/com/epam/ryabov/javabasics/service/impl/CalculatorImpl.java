@@ -4,6 +4,8 @@ import com.epam.ryabov.javabasics.service.Calculator;
 import com.epam.ryabov.javabasics.utility.Bracket;
 import com.epam.ryabov.javabasics.utility.Operations;
 
+import java.util.Arrays;
+import java.util.Optional;
 import java.util.Stack;
 import java.util.regex.Pattern;
 
@@ -40,17 +42,17 @@ public class CalculatorImpl implements Calculator {
     }
 
     private boolean enumLoop(char aChar) {
-        for (Operations operations : Operations.values()) {
-            if (operations.getChar() == aChar) {
-                return true;
-            }
-        }
-        return false;
+        return Arrays.stream(Operations.values()).anyMatch(operations -> operations.getChar() == aChar);
     }
 
     private int enumLoopPrivateLvl(char aChar) {
-        for (Operations operations : Operations.values()) {
-            if (operations.getChar() == aChar) {
+/*        return Arrays.stream(Operations.values())
+                .filter(operations -> operations.getChar() == aChar)
+                .findFirst()
+                .map(operations -> operations.priorityLvl(aChar))
+                .orElse(0);*/
+        for (Operations operations : Operations.values()){
+            if (operations.getChar() == aChar){
                 return operations.priorityLvl(aChar);
             }
         }
@@ -58,12 +60,13 @@ public class CalculatorImpl implements Calculator {
     }
 
     private Double enumLoopOperation(char aChar, Double b, Double a) {
-        for (Operations operations : Operations.values()) {
+        return Arrays.stream(Operations.values()).filter(operations -> operations.getChar() == aChar).findFirst().map(operations -> operations.operate(b, a)).orElse(0.0);
+/*        for (Operations operations : Operations.values()) {
             if (operations.getChar() == aChar) {
                 return operations.operate(b, a);
             }
         }
-        return 0.0;
+        return 0.0;*/
     }
 
     @Override
